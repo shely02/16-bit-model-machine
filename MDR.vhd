@@ -1,0 +1,25 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+--用于存储数据和中间计算结果
+entity MDR is
+    port (
+        CP       : in  std_logic;           -- 时钟脉冲
+        reset    : in  std_logic;           -- 复位信号
+        load_MDR : in  std_logic;           -- 加载MDR信号
+        MDR_IN   : in  std_logic_vector(15 downto 0); -- 输入数据
+        MDR_OUT  : out std_logic_vector(15 downto 0)  -- 输出数据
+    );
+end MDR;
+
+architecture Behavioral of MDR is
+begin
+    process (CP, reset, load_MDR)
+    begin
+        if reset = '1' then
+            MDR_OUT <= (others => '0'); -- 复位时，MDR输出清零
+        elsif rising_edge(CP) and load_MDR = '1' then -- 时钟上升沿且加载信号有效时
+            MDR_OUT <= MDR_IN; -- 将输入数据加载到MDR中
+        end if;
+    end process;
+end Behavioral;

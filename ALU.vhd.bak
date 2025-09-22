@@ -1,0 +1,16 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity ALU is
+    port (
+        input1 : in std_logic_vector(7 downto 0);
+        input2 : in std_logic_vector(7 downto 0);
+        output_result : out std_logic_vector(7 downto 0)
+    );
+end entity;
+
+architecture rtl of ALU is
+begin
+    output_result <= std_logic_vector(unsigned(input1) + unsigned(input2));
+end architecture;

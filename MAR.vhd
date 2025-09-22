@@ -1,0 +1,25 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+--存储内存地址，以便访问内存中的数据
+entity MAR is
+    port (
+        CP       : in  std_logic;           -- 时钟脉冲信号，输入信号，用于同步模块的操作
+        reset    : in  std_logic;           -- 复位信号
+        load_MAR : in  std_logic;           -- 加载MAR信号，信号有效（高电平）时，表示需要将输入地址加载到MAR中
+        MAR_IN   : in  std_logic_vector(15 downto 0); -- 输入地址
+        MAR_OUT  : out std_logic_vector(15 downto 0)  -- 输出地址
+    );
+end MAR;
+
+architecture Behavioral of MAR is
+begin
+    process (CP, reset, load_MAR)
+    begin
+        if reset = '1' then
+            MAR_OUT <= (others => '0'); -- 复位时，MAR输出清零
+        elsif rising_edge(CP) and load_MAR = '1' then -- 时钟上升沿且加载信号有效时
+            MAR_OUT <= MAR_IN; -- 将输入地址加载到MAR中
+        end if;
+    end process;
+end Behavioral;

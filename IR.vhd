@@ -1,0 +1,29 @@
+library ieee;
+use ieee.std_logic_1164.all;
+--指令寄存器，存储当前正在执行的指令
+entity IR is
+port(
+    reset : in std_logic;
+    cp : in std_logic;
+    LoadIR : in std_logic;
+    inputIR : in std_logic_vector(15 downto 0);
+    outIR : out std_logic_vector(15 downto 0)
+);
+end entity;
+
+architecture IR_body of IR is
+signal IR : std_logic_vector(15 downto 0);
+begin
+    process(reset,LoadIR,inputIR,cp)
+    begin
+        if reset='1' then
+            IR<="0000000000000000";
+        elsif cp'event and cp='1' then
+            if LoadIR='1' then
+                IR<=inputIR;
+                
+            end if;
+        end if;
+    end process;
+outIR<=IR;
+end  architecture;

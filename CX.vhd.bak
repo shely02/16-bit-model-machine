@@ -1,0 +1,42 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity CX is
+    port (
+        input_data : in std_logic_vector(15 downto 0); -- 输入信号，二进制正整数
+          loadCX:in std_logic;
+          INC_CX:in std_logic;
+        clk : in std_logic; -- 时钟信号
+        reset : in std_logic; -- 复位信号
+        output_signal : out std_logic; -- 输出信号，给控制器，相当于z-flag
+          z_flag:out std_logic_vector(15 downto 0)
+    );
+end entity CX;
+
+architecture Behavioral of CX is
+   signal temp : std_logic_vector(15 downto 0);
+    begin
+    process(clk, reset)
+    begin
+        if rising_edge(clk) then
+              if loadCX = '1' then
+                 temp <= INPut_data;
+                end if;
+                if INC_CX = '1' then  
+                    temp <= temp - 1;
+                end if;
+                if temp > 0 then 
+                   z_flag <= temp;
+                    output_signal <= '1'; 
+                elsif temp = 0 then
+                   z_flag <= temp;
+                    output_signal <= '0';
+
+            end if;
+        end if;
+          
+    end process;
+
+end architecture Behavioral;

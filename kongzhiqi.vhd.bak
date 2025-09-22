@@ -1,0 +1,276 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+ 
+ENTITY kongzhiqi IS
+  port(clk :in std_logic; 
+       reset:in std_logic;
+         M:in std_logic;
+       z_flag:in std_logic;
+       OP:in std_logic_vector(4 downto 0);
+       PC_bus:out std_logic;
+       LoadMAR:out std_logic;
+       IncPC:out std_logic;
+       MemR:out std_logic;
+       LoadMDR:out std_logic;
+       selM:out std_logic_vector(1 downto 0);
+       MDR_bus:out std_logic;
+       LoadIR:out std_logic;
+         LoadCX:OUT STD_LOGIC;--
+       LoadBX:OUT STD_LOGIC;--
+         LoadAX:OUT STD_LOGIC;--
+       Addr_bus:out std_logic;
+       AC_bus:out std_logic;
+         INCBX:OUT STD_LOGIC;--
+         BX_BUS:OUT STD_LOGIC;
+         AX_BUS:OUT STD_LOGIC;
+         INCCX:OUT STD_LOGIC;
+       Memw:out std_logic;
+       LoadAC:out std_logic;
+       selA:out std_logic_vector(1 downto 0);
+       LoadPC:out std_logic;
+       LoadPSW:out std_logic;
+       ALUop:out std_logic_vector(4 downto 0);
+         F: out std_logic_vector(3 downto 0));         
+END kongzhiqi;
+ 
+ARCHITECTURE kongzhiqi_1 OF kongzhiqi IS 
+  TYPE STATE IS (S0,S1,S2,S3,S4,S5,S6,S7,S8,S9,s10);  
+  SIGNAL  PRESENTSTATE  :STATE;  
+  SIGNAL  NEXTSTATE    :STATE;  
+BEGIN
+SWITCHTONEXTSTATE:PROCESS(clk,reset)  
+  BEGIN
+    if reset='1'  then PRESENTSTATE <= S0; 
+    elsif clk'event AND clk='1' then   
+      PRESENTSTATE<=NEXTSTATE;
+    end if;
+END PROCESS SWITCHTONEXTSTATE;
+ 
+CHANGESTATEMODE:PROCESS(PRESENTSTATE,z_flag,OP)
+  BEGIN
+    PC_bus<='0';
+    LoadMAR<='0';
+    IncPC<='0';
+    MemR<='0';
+    LoadMDR<='0';
+    selM<="00";
+    MDR_bus<='0';
+    LoadIR<='0';
+     LoadCX<='0';
+     LoadBX<='0';
+     LoadAX<='0';
+    Addr_bus<='0';
+    AC_bus<='0';
+     INCBX<='0';
+     BX_BUS<='0';
+     AX_BUS<='0';
+     INCCX<='0';
+    Memw<='0';
+    LoadAC<='0';
+    selA<="00";
+    LoadPC<='0';
+    LoadPSW<='0';
+    ALUop<="00000";
+     if OP(4)='0' then  --累加
+  case PRESENTSTATE is
+    when S0=>                
+        PC_bus <= '1';  
+        LoadMAR <= '1';  
+        IncPC <= '1';
+        NEXTSTATE <= S1;
+        F <= "0000";
+    when S1=>               
+        MemR <= '1';    
+        LoadMDR <= '1';  
+        selM <= "10";
+        NEXTSTATE <= S2;
+        F <= "0001";
+    when S2 =>
+     MDR_bus <= '1';  
+        LoadIR <= '1';
+        NEXTSTATE <= S3;
+        F <= "0010";
+    when S3=>           
+        Addr_bus <= '1'; 
+        LoadMAR <= '1';
+          F <= "0011";
+            IF OP = ("00001") THEN 
+          NEXTSTATE <= S4;--Load0
+             ELSIF OP=("00010") then 
+             NEXTSTATE <= S5;--load1
+         ELSIF OP = ("00011") THEN 
+          NEXTSTATE <= S6;--add
+         ELSIF OP = ("00100") THEN 
+          NEXTSTATE <= S7;--inc
+             ELSIF OP = ("00101") THEN
+             NEXTSTATE <= S8;--dec
+                 ELSIF OP = ("00110") THEN
+             NEXTSTATE <= S8;--jnz
+            ELSIF OP = ("00111") THEN 
+                NEXTSTATE <= S10;--store
+                IF Z_flag = '0'
+                    THEN NEXTSTATE <= S9;
+                ELSE NEXTSTATE <= S10;
+                End if;
+         ELSE NEXTSTATE <= S4; 
+        End IF;
+    when S4=> --LOAD0            
+         MEMR <= '1';
+          LoadMDR <= '1';
+          SelM <= "10";
+              mdr_bus <= '1';
+          loadCX <= '1';
+        NEXTSTATE <= S0; 
+        F <= "0100";
+    when S5 =>  --LOAD1         
+         MEMR <= '1';
+          LoadMDR <= '1';
+          SelM <= "10";
+              mdr_bus <= '1';
+          LoadBX <= '1';
+        NEXTSTATE <= S0; 
+        F <= "0101";
+    when S6 =>  --ADD          
+        memr<='1';
+          bx_BUS <= '1';
+        ALUop<="00000";
+          loadAC <= '1';
+          selA <= "01";
+          F <= "1111";
+        NEXTSTATE <= S0;          
+    when S7 =>  --INCBX
+        INCBX <= '1';
+        NEXTSTATE <= S0; 
+          F <= "0111";     
+    when S8 => --DECCX
+       INCCX <= '1';
+        NEXTSTATE <= S0;
+          F <= "1000";
+    when S9 => --
+          memr<='1';
+          loadmdr<='1';
+          selm<="10";
+          if z_flag<='0' then 
+          mdr_bus<='1';
+          loadpc<='1';
+          nextstate<=s0;
+          else
+        NEXTSTATE <= S0; 
+        F <= "1001";    
+         end if; 
+     when s10 => --STORE
+     AC_bus <= '1';
+            SelM <= "01";
+            LoadMDR <= '1';
+                  Memw <= '1';
+                  F<="1010";
+         end case;
+			else   --斐波那契
+      case PRESENTSTATE is
+      when S0=>               
+        PC_bus <= '1';  
+        LoadMAR <= '1';  
+        IncPC <= '1';
+        NEXTSTATE <= S1;
+        F <= "0000";
+    when S1=>               
+        MemR <= '1';    
+        LoadMDR <= '1';  
+        selM <= "10";
+        NEXTSTATE <= S2;
+        F <= "0001";
+    when S2 =>
+     MDR_bus <= '1';  
+        LoadIR <= '1';
+        NEXTSTATE <= S3;
+        F <= "0010";
+    when S3=>           
+        Addr_bus <= '1'; 
+        LoadMAR <= '1';
+          F <= "0011";
+            IF OP = ("10001") THEN 
+          NEXTSTATE <= S4;--Load0
+             ELSIF OP=("10010") then 
+             NEXTSTATE <= S5;--load1
+         ELSIF OP = ("10011") THEN 
+          NEXTSTATE <= S6;--load2
+         ELSIF OP = ("1010") THEN 
+          NEXTSTATE <= S7;--add1
+                ELSIF OP = ("10101") THEN 
+          NEXTSTATE <= S8;--add2
+             ELSIF OP = ("10110") THEN 
+          NEXTSTATE <= S9;--jnz
+            ELSIF OP = ("10111") THEN 
+                  NEXTSTATE <= S10;--store
+                IF Z_flag = '0'
+                    THEN NEXTSTATE <= S9;
+                ELSE NEXTSTATE <= S10;
+                End if;
+         ELSE NEXTSTATE <= S4; 
+        End IF;
+    when S4=> --LOAD0            
+         MEMR <= '1';
+          LoadMDR <= '1';
+          SelM <= "10";
+              mdr_bus <= '1';
+          loadCX <= '1';
+        NEXTSTATE <= S0; 
+        F <= "0100";
+    when S5 =>  --LOAD1         
+         MEMR <= '1';
+          LoadMDR <= '1';
+          SelM <= "10";
+              mdr_bus <= '1';
+          LoadAX <= '1';
+        NEXTSTATE <= S0; 
+        F <= "0101";
+    when S6 =>  --LOAD2          
+         MEMR <= '1';
+          LoadMDR <= '1';
+          SelM <= "10";
+              mdr_bus <= '1';
+          LoadBX <= '1';
+          F <= "1111";
+        NEXTSTATE <= S0;          
+    when S7 =>  --ADD1
+        ax_BUS <= '1';
+        ALUop<="00000";
+          loadAC <= '1';
+          loadAX<='1';
+          selA <= "01";
+          INCCX <= '1';
+        NEXTSTATE <= S0; 
+          F <= "0111";     
+    when S8 =>  --ADD2
+        bx_BUS <= '1';
+        ALUop<="00000";
+          loadAC <= '1';
+          loadBX<='1';
+          selA <= "01";
+          INCCX<='1';
+        NEXTSTATE <= S0;
+          F <= "1000";
+    when S9 => --jnz
+        memr<='1';
+          loadmdr<='1';
+          selm<="10";
+          if z_flag<='0' then 
+          mdr_bus<='1';
+          loadpc<='1';
+          nextstate<=s0;
+          else
+        NEXTSTATE <= S0; 
+        F <= "1001";     
+          end if;
+     when s10 => --STORE
+            AC_bus <= '1';
+         SelM <= "01";
+         LoadMDR <= '1';
+            Memw <= '1';
+                  F<="1010";
+         end case;
+     end if;
+  END PROCESS CHANGESTATEMODE;
+END kongzhiqi_1;

@@ -1,0 +1,45 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+
+entity Ram_16 is
+port(
+    reset : in std_logic;
+    cp : in std_logic;
+    MemR : in std_logic;
+    MemW : in std_logic;
+    inputMAR : in std_logic_vector(15 downto 0);
+    inputMDR : in std_logic_vector(15 downto 0);
+    outRAM : out std_logic_vector(15 downto 0) 
+);
+end entity;
+
+architecture Ram_16_body of RAM_16 is
+type arr is array(127 downto 0)of std_logic_vector(15 downto 0);
+signal reg : arr;
+begin
+    process(reset,cp,MemR,MemW,inputMAR,inputMDR)
+    begin
+    if reset='1' then
+            reg(ieee.std_logic_arith.conv_integer("0000000"))<="0000101000001011";--Load010
+            reg(ieee.std_logic_arith.conv_integer("0000001"))<="0001010000001000";--Load011
+            reg(ieee.std_logic_arith.conv_integer("0000010"))<="0001111000000011";--ADD
+            reg(ieee.std_logic_arith.conv_integer("0000011"))<="0010010000000100";--Inc
+            reg(ieee.std_logic_arith.conv_integer("0000100"))<="0010110000000101";--DEX
+            reg(ieee.std_logic_arith.conv_integer("0000101"))<="0011010000000010";--JNZ
+            reg(ieee.std_logic_arith.conv_integer("0000110"))<="0011110000001100";--Store
+            reg(ieee.std_logic_arith.conv_integer("0001000"))<="0000000000000010";--data0
+            reg(ieee.std_logic_arith.conv_integer("0001001"))<="0000000000000010";--data0
+            reg(ieee.std_logic_arith.conv_integer("0001010"))<="0000000000000011";--data0
+            reg(ieee.std_logic_arith.conv_integer("0001011"))<="0000000000000011";--data10
+    elsif cp'event and cp='1' then
+        if MemW='1' then
+            reg(conv_integer(inputMAR))<=inputMDR;
+        end if;
+        
+    end if;
+    end process;
+outRAM<=reg(conv_integer(inputMAR)) when MemR='1';
+end architecture;
